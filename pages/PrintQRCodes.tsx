@@ -28,11 +28,12 @@ const PrintQRCodes: React.FC = () => {
 
   const getQRImageUrl = (tbl: string) => {
     const fullUrl = getTableUrl(tbl);
-    return `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(fullUrl)}&margin=10`;
+    // Request SVG format for 100% crisp vector quality when printing/saving to PDF
+    return `https://api.qrserver.com/v1/create-qr-code/?size=600x600&format=svg&data=${encodeURIComponent(fullUrl)}&margin=10`;
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-20 bg-gray-100 dark:bg-background-dark text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen pt-20 pb-20 bg-gray-100 dark:bg-background-dark text-gray-900 dark:text-gray-100 print:pt-0 print:pb-0 print:bg-white">
       
       {/* Screen Only Control Header (Hidden when printing) */}
       <div className="print:hidden max-w-5xl mx-auto px-4 sm:px-6 mb-8">
@@ -43,19 +44,33 @@ const PrintQRCodes: React.FC = () => {
                 <ArrowLeft size={14} /> Voltar ao Cardápio de Mesa
               </Link>
               <h1 className="text-3xl font-brand uppercase tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
-                <QrCode size={32} className="text-primary" /> Placas QR Code para Impressão
+                <QrCode size={32} className="text-primary" /> Placas QR Code para Impressão PDF
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Imprima estas placas e coloque nas mesas do restaurante. Os clientes poderão escanear com a câmara do telemóvel para fazer pedidos.
+                Imprima ou salve em PDF estas placas para colocar nas mesas do restaurante em alta definição vectorizada.
               </p>
             </div>
 
             <button
               onClick={() => window.print()}
-              className="bg-primary hover:bg-red-700 text-white font-bold py-3 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-2 text-sm uppercase tracking-wider transition-all active:scale-95"
+              className="bg-primary hover:bg-red-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-2 text-sm uppercase tracking-wider transition-all active:scale-95"
             >
-              <Printer size={18} /> Imprimir Placas Agoras
+              <Printer size={18} /> Imprimir / Salvar em PDF
             </button>
+          </div>
+
+          {/* Dica para Impressão de Alta Qualidade */}
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 mb-6 text-xs text-amber-900 dark:text-amber-200">
+            <p className="font-bold mb-1 flex items-center gap-1.5 text-sm">
+              <Sparkles size={16} className="text-amber-600 dark:text-amber-400" />
+              Como gerar um PDF perfeito em alta qualidade:
+            </p>
+            <ol className="list-decimal list-inside space-y-1 font-medium text-[11px] text-amber-800 dark:text-amber-300">
+              <li>Clique no botão vermelho acima <strong>"Imprimir / Salvar em PDF"</strong>.</li>
+              <li>Na janela que abrir, no campo <em>Destino</em>, selecione <strong>"Salvar como PDF"</strong>.</li>
+              <li>Em <em>Mais definições</em>, marque a opção <strong>"Gráficos de segundo plano"</strong> (para manter as cores vermelhas e fundo).</li>
+              <li>Defina as margens como <strong>"Nenhuma"</strong> ou <strong>"Mínimas"</strong>.</li>
+            </ol>
           </div>
 
           {/* Settings Grid */}
@@ -85,6 +100,35 @@ const PrintQRCodes: React.FC = () => {
               </p>
             </div>
 
+            {/* Layout Options */}
+            <div>
+              <label className="font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                Formato da Placa:
+              </label>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setCardSize('a5')}
+                  className={`px-4 py-2 rounded-xl font-bold transition-all border text-xs flex items-center gap-2 ${
+                    cardSize === 'a5'
+                      ? 'bg-primary text-white border-primary shadow-sm'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'
+                  }`}
+                >
+                  2 Placas por Folha A4 (Tamanho A5)
+                </button>
+                <button
+                  onClick={() => setCardSize('a4')}
+                  className={`px-4 py-2 rounded-xl font-bold transition-all border text-xs flex items-center gap-2 ${
+                    cardSize === 'a4'
+                      ? 'bg-primary text-white border-primary shadow-sm'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'
+                  }`}
+                >
+                  1 Placa Grande por Folha (Tamanho A4)
+                </button>
+              </div>
+            </div>
+
             {/* Tables selection */}
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -109,7 +153,7 @@ const PrintQRCodes: React.FC = () => {
                     <button
                       key={tbl}
                       onClick={() => toggleTable(tbl)}
-                      className={`px-3 py-1.5 rounded-xl font-bold transition-all border ${
+                      className={`px-3.5 py-1.5 rounded-xl font-bold transition-all border ${
                         isSelected
                           ? 'bg-primary text-white border-primary shadow-sm'
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-700'
@@ -126,8 +170,14 @@ const PrintQRCodes: React.FC = () => {
       </div>
 
       {/* Printable Area - Tabletop Cards */}
-      <div className="max-w-5xl mx-auto px-4 print:p-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-8 print:gap-6 print:break-inside-avoid">
+      <div className="max-w-5xl mx-auto px-4 print:max-w-none print:px-0">
+        <div
+          className={`grid gap-8 print:gap-8 ${
+            cardSize === 'a4'
+              ? 'grid-cols-1 print:grid-cols-1'
+              : 'grid-cols-1 md:grid-cols-2 print:grid-cols-2'
+          }`}
+        >
           {selectedTables.map((tbl) => {
             const qrUrl = getQRImageUrl(tbl);
             const targetUrl = getTableUrl(tbl);
@@ -135,13 +185,17 @@ const PrintQRCodes: React.FC = () => {
             return (
               <div
                 key={tbl}
-                className="bg-white text-gray-900 border-4 border-gray-900 rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-between text-center relative overflow-hidden print:shadow-none print:border-2 print:rounded-2xl print:p-6 print:break-inside-avoid"
-                style={{ minHeight: '440px' }}
+                className="bg-white text-gray-900 border-4 border-gray-900 rounded-3xl p-8 shadow-2xl flex flex-col items-center justify-between text-center relative overflow-hidden print-card print:shadow-none print:border-4 print:border-black print:rounded-2xl print:p-6 print:m-0"
+                style={{
+                  minHeight: cardSize === 'a4' ? '650px' : '450px',
+                  pageBreakInside: 'avoid',
+                  breakInside: 'avoid',
+                }}
               >
                 {/* Decorative Top Banner */}
-                <div className="w-full bg-primary text-white py-3 px-6 -mt-8 -mx-8 mb-6 rounded-t-2xl font-brand uppercase tracking-widest text-lg flex items-center justify-between print:-mt-6 print:-mx-6 print:mb-4">
-                  <span>U.S. PIZZA LUANDA</span>
-                  <span className="text-xs bg-black/30 px-3 py-1 rounded-full font-sans font-bold">
+                <div className="w-full bg-primary text-white py-3 px-6 -mt-8 -mx-8 mb-6 rounded-t-2xl font-brand uppercase tracking-widest text-lg flex items-center justify-between print:-mt-6 print:-mx-6 print:mb-4 print:bg-primary print:text-white">
+                  <span className="font-bold">U.S. PIZZA LUANDA</span>
+                  <span className="text-xs bg-black/30 px-3 py-1 rounded-full font-sans font-bold text-white">
                     CARDÁPIO DIGITAL
                   </span>
                 </div>
@@ -156,16 +210,17 @@ const PrintQRCodes: React.FC = () => {
                   </h2>
                 </div>
 
-                {/* Real High Quality Scannable QR Code Image */}
-                <div className="my-4 p-4 bg-white rounded-2xl border-2 border-gray-900 shadow-md inline-block relative">
+                {/* Vector Crisp QR Code Image */}
+                <div className="my-4 p-4 bg-white rounded-2xl border-2 border-gray-900 shadow-md inline-block relative print:border-2 print:border-black">
                   <img
                     src={qrUrl}
-                    alt={`QR Code Mesa ${tbl}`}
-                    className="w-48 h-48 print:w-44 print:h-44 object-contain mx-auto"
+                    alt={`QR Code Vector Mesa ${tbl}`}
+                    className={`object-contain mx-auto ${
+                      cardSize === 'a4'
+                        ? 'w-64 h-64 print:w-72 print:h-72'
+                        : 'w-48 h-48 print:w-48 print:h-48'
+                    }`}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
-                    <QrCode size={64} className="text-gray-900" />
-                  </div>
                 </div>
 
                 {/* Instructions */}
@@ -173,7 +228,7 @@ const PrintQRCodes: React.FC = () => {
                   <p className="text-sm font-black uppercase text-gray-900">
                     COMO FAZER O SEU PEDIDO:
                   </p>
-                  <ol className="text-xs text-gray-700 font-medium space-y-1 text-left list-decimal list-inside">
+                  <ol className="text-xs text-gray-800 font-bold space-y-1 text-left list-decimal list-inside">
                     <li>Aponte a câmara do seu telemóvel para o QR Code</li>
                     <li>Escolha os seus pratos e personalize os ingredientes</li>
                     <li>Envie diretamente para a cozinha e acompanhe!</li>
@@ -181,9 +236,9 @@ const PrintQRCodes: React.FC = () => {
                 </div>
 
                 {/* Footer Tagline */}
-                <div className="mt-6 pt-4 border-t border-gray-200 w-full text-[10px] font-bold text-gray-400 uppercase tracking-wider flex justify-between items-center print:mt-4 print:pt-2">
+                <div className="mt-6 pt-4 border-t border-gray-300 w-full text-[11px] font-extrabold text-gray-600 uppercase tracking-wider flex justify-between items-center print:mt-4 print:pt-2">
                   <span>Wi-Fi Grátis no Local</span>
-                  <span className="text-primary font-bold">#USPizzaLuanda</span>
+                  <span className="text-primary font-black">#USPizzaLuanda</span>
                 </div>
 
                 {/* Test Link Button (Screen Only) */}
@@ -204,9 +259,16 @@ const PrintQRCodes: React.FC = () => {
       {/* Print Specific CSS Overrides */}
       <style>{`
         @media print {
-          body {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          html, body {
             background: white !important;
             color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .print\\:hidden {
             display: none !important;
@@ -216,7 +278,11 @@ const PrintQRCodes: React.FC = () => {
           }
           @page {
             size: A4 portrait;
-            margin: 1cm;
+            margin: 8mm;
+          }
+          .print-card {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
         }
       `}</style>
